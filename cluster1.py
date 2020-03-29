@@ -10,38 +10,6 @@ input_costs = [9,
                 [8, 9, 200]]
 
 """
-#solve for the maximum spanning distance with k = 4 clusters
-
-f = open("SmallClusters.txt", "r")
-input_costs = []
-for line in f:
-    string_entries = line.split()
-    row = [int(n) for n in string_entries]
-    input_costs.append(row)
-
-#find number of vertices
-n = input_costs[0][0]
-
-
-#define the number of clusters we want
-K = 4
-
-#create list of vertices, with each list entry in the form [leader, size of cluster (if leader), [list of connected nodes]]
-#initialize each entry, i, to [i, 1, []]
-#create unused entry in index 0 so that nodes are in the index that corresponds to their number, starting with 1
-vertices = [None] * (n + 1)
-for i in range(1, n + 1):
-    vertices[i] = [i, 1, []]
-
-#next, sort the list of edges by using the existing input_costs array, removing the first element,
-#reordering the entries for each edge so that cost apears first and then using the python sort() method
-input_costs[0] = input_costs.pop()
-for i in range(len(input_costs)):
-    input_costs[i][0], input_costs[i][1], input_costs[i][2] = input_costs[i][2], input_costs[i][0], input_costs[i][1]
-input_costs.sort()
-
-#set the pointer that will keep track of which edge is the next minimum, and initialize it to 0
-counter = 0
 
 #define the function that finds the next edge to add to our graph, returning a list of the form [edge, new value of counter]
 def next_edge(v_table, costs, counter):
@@ -55,9 +23,6 @@ def next_edge(v_table, costs, counter):
         l1, l2 = v_table[edge[1]][0], v_table[edge[2]][0]
     #now that l1 and l2 are unequal, we can return the edge and new position of the counter
     return [edge, counter + 1]
-
-#initialize found_list to use for vertices search in breadth-first-search algorithm
-found_vertices = [False] * len(vertices)
 
 #use breadth-first search to find all vertices connected to a vertex in the graph so far
 def find_cluster(v_table, vertex, found_vertices):
@@ -112,12 +77,54 @@ def add_to_graph(v_table, costs, counter, found_vertices):
     return new_counter
 
 
-for i in range(n - K):
-    counter = add_to_graph(vertices, input_costs, counter, found_vertices)
+def read_input_costs(filename):
+    input_costs = []
+    with open(filename,"r") as f:
+        for line in f:
+            string_entries = line.split()
+            row = [int(n) for n in string_entries]
+            input_costs.append(row)
+
+    return input_costs
+
+def main():
+    #solve for the maximum spanning distance with k = 4 clusters
+
+    input_costs = read_input_costs("SmallClusters.txt")
+
+    #find number of vertices
+    n = input_costs[0][0]
+
+    #define the number of clusters we want
+    K = 4
+
+    #create list of vertices, with each list entry in the form [leader, size of cluster (if leader), [list of connected nodes]]
+    #initialize each entry, i, to [i, 1, []]
+    #create unused entry in index 0 so that nodes are in the index that corresponds to their number, starting with 1
+    vertices = [[i,1,[]] for i in range(n+1) ]
+
+    #next, sort the list of edges by using the existing input_costs array, removing the first element,
+    #reordering the entries for each edge so that cost apears first and then using the python sort() method
+    input_costs[0] = input_costs.pop()
+    for i in range(len(input_costs)):
+        input_costs[i][0], input_costs[i][1], input_costs[i][2] = input_costs[i][2], input_costs[i][0], input_costs[i][1]
+    input_costs.sort()
+
+    #the pointer that will keep track of which edge is the next minimum
+    counter = 0
+
+    #initialize found_list to use for vertices search in breadth-first-search algorithm
+    found_vertices = [False] * len(vertices)
+
+    for i in range(n - K):
+        counter = add_to_graph(vertices, input_costs, counter, found_vertices)
 
 
-#after finishing Kruskal's algorithm, the next edge in our list will have length equal to the 
-#maximum spanning distance
-print(next_edge(vertices, input_costs, counter))
+    #after finishing Kruskal's algorithm, the next edge in our list will have length equal to the 
+    #maximum spanning distance
+    print(next_edge(vertices, input_costs, counter))
 
+
+if __name__=="__main__":
+    main()
 
