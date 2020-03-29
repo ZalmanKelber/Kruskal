@@ -56,10 +56,12 @@ def next_edge(v_table, costs, counter):
     #now that l1 and l2 are unequal, we can return the edge and new position of the counter
     return [edge, counter + 1]
 
+#initialize found_list to use for vertices search in breadth-first-search algorithm
+found_vertices = [False] * len(vertices)
+
 #use breadth-first search to find all vertices connected to a vertex in the graph so far
-def find_cluster(v_table, vertex):
+def find_cluster(v_table, vertex, found_vertices):
     #create a list of all the vertices to keep track of which ones we've found
-    found_vertices = [False] * len(v_table)
     cluster = []
     #create a queue and add the vertex to it, and set its value in the found_vertices table to true
     found_vertices[vertex] = True
@@ -79,11 +81,14 @@ def find_cluster(v_table, vertex):
         #transfer the parent vertices we've already searched to the cluster list and add the new vertices to the queue
         cluster += q.copy()
         q = tempq.copy()
+    #set the value of all the found_vertices entries we changed back to False so the next breadth-first search can use it again
+    for i in range(len(cluster)):
+        found_vertices[cluster[i]] = False
     #return the found vertices
     return cluster 
 
 #define the function that will add a new edge to the graph, and update the clusters:
-def add_to_graph(v_table, costs, counter):
+def add_to_graph(v_table, costs, counter, found_vertices):
     #first, find the next edge to add find its leaders, and then determine which of the two clusters is smaller
     edge_and_counter = next_edge(v_table, costs, counter)
     edge, new_counter = edge_and_counter[0], edge_and_counter[1]
@@ -96,7 +101,7 @@ def add_to_graph(v_table, costs, counter):
     #fine for our purposes)
     v_table[bigger][1] += v_table[smaller][1]
     #now find all of the vertices in the smaller cluster
-    small_cluster = find_cluster(v_table, smaller)
+    small_cluster = find_cluster(v_table, smaller, found_vertices)
     #change the leader of all the vertices in the smaller cluster to the leader of the bigger cluster
     for i in range(len(small_cluster)):
         v_table[small_cluster[i]][0] = bigger
@@ -108,7 +113,7 @@ def add_to_graph(v_table, costs, counter):
 
 
 for i in range(n - K):
-    counter = add_to_graph(vertices, input_costs, counter)
+    counter = add_to_graph(vertices, input_costs, counter, found_vertices)
 
 
 #after finishing Kruskal's algorithm, the next edge in our list will have length equal to the 
